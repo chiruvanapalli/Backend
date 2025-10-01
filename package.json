@@ -1,0 +1,24 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "express → Web framework.\r mongoose → MongoDB ORM.\r dotenv → Load environment variables.\r bcryptjs → Hash passwords.\r jsonwebtoken → Handle JWT authentication.\r body-parser → Parse request bodies (optional, Express 4.16+ has built-in support).\r cors → Allow cross-origin requests.\r nodemon → Automatically restarts server on code changes.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
