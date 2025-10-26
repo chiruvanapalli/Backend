@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 
+// User model
+// Fields:
+// - name: user display name
+// - email: unique identifier for login
+// - password: hashed password (never return in responses)
+// - role: 'user' or 'admin' (used for authorization)
 const userSchema = new mongoose.Schema(
   {
     name: {

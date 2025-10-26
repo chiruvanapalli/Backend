@@ -1,16 +1,31 @@
 // server.js
+// Simple Express server for the authentication example project.
+// Responsibilities:
+//  - Load environment variables from .env
+//  - Connect to MongoDB
+//  - Register route handlers under /api/*
+// Keep this file minimal; route logic lives in `routes/` and middleware in `middleware/`.
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const authRoute = require("./routes/auth");
+const cors = require('cors');
 
+// Load .env (database URL, JWT secret, etc.)
 dotenv.config();
 
 const app = express();
-app.use(express.json()); // to parse JSON bodies
+// Allow cross-origin requests from frontend during development
+app.use(cors());
+// Webhook endpoint requires raw body for signature verification.
+// Register webhook route BEFORE the JSON body parser to preserve raw body.
+app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), require('./routes/webhooks'));
+
+// Parse JSON bodies for all other incoming requests
+app.use(express.json());
 
 
-// MongoDB connection
+// MongoDB connection (single connection for the app)
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
@@ -24,6 +39,11 @@ app.use("/api/auth", authRoute);
 app.use("/api", require("./routes/public"));
 app.use("/api/user", require("./routes/user"));
 app.use("/api/admin", require("./routes/admin"));
+// E-commerce related routes
+app.use('/api/cart', require('./routes/cart'));
+app.use('/api/wishlist', require('./routes/wishlist'));
+app.use('/api/orders', require('./routes/orders'));
+app.use('/api/address', require('./routes/address'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

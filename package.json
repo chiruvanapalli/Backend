@@ -4,7 +4,16 @@
   "description": "express → Web framework.\r mongoose → MongoDB ORM.\r dotenv → Load environment variables.\r bcryptjs → Hash passwords.\r jsonwebtoken → Handle JWT authentication.\r body-parser → Parse request bodies (optional, Express 4.16+ has built-in support).\r cors → Allow cross-origin requests.\r nodemon → Automatically restarts server on code changes.",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "create-test-user": "node scripts/create_test_user.js",
+    "create-order-db": "node scripts/create_order_for_user.js",
+    "create-order": "node scripts/call_create_order.js",
+    "confirm-order": "node scripts/confirm_order.js",
+    "get-order": "node scripts/get_order.js",
+    "simulate:webhook": "node scripts/simulate_stripe_webhook.js",
+    "find-sim-orders": "node scripts/find_sim_orders.js",
+    "stripe:listen": "stripe listen --forward-to localhost:5000/webhooks/stripe"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +23,9 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.3"
+    "mongoose": "^8.18.3",
+    "cors": "^2.8.5"
+    ,"stripe": "^12.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

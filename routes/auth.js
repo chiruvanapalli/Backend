@@ -1,4 +1,10 @@
 // routes/auth.js
+// Authentication routes: register, login, and current-user operations.
+// - POST /register  -> create a new user (returns token + user)
+// - POST /login     -> authenticate and return token + user
+// - GET /me         -> protected, returns authenticated user's profile
+// - PUT /me         -> protected, update profile
+// - DELETE /me      -> protected, delete account
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
@@ -7,6 +13,8 @@ const User = require("../models/User");
 const authMiddleware = require("../middleware/auth");
 
 // REGISTER
+// Request body: { name, email, password, role?(optional) }
+// Response: 201 { message, token, user }
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -30,7 +38,7 @@ router.post("/register", async (req, res) => {
 
     await user.save();
 
-    // Create JWT token
+    // Create JWT token (contains user id). Token expiry: 1 hour
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
@@ -47,6 +55,8 @@ router.post("/register", async (req, res) => {
 });
 
 // LOGIN
+// Request body: { email, password }
+// Response: 200 { message, token, user }
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -76,7 +86,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Protected route example
+// Get current user's profile
+// Protected: requires Authorization: Bearer <token>
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -86,6 +97,8 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// Update current user's profile
+// Protected: user sends fields to update in request body
 router.put("/me", authMiddleware, async (req, res) => {
   try {
     const updatedUser = await User.findByIdAndUpdate(
@@ -100,6 +113,8 @@ router.put("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// Delete current user's account
+// Protected
 router.delete("/me", authMiddleware, async (req, res) => {
   try {
     await User.findByIdAndDelete(req.user.id);

@@ -1,15 +1,21 @@
 // routes/admin.js
+// Admin-only routes. These endpoints require both authentication and
+// authorization (admin role). The `authMiddleware` verifies the JWT and sets
+// `req.user`, and `adminMiddleware` verifies the user's role.
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const adminMiddleware = require("../middleware/admin");
 const User = require("../models/User");
 
+// Simple admin dashboard stub
 router.get("/dashboard", authMiddleware, adminMiddleware, (req, res) => {
   res.json({ message: "Welcome Admin!" });
 });
 
 
+// GET /users - returns all users (admin only)
+// Note: password fields are removed before returning
 router.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const users = await User.find().select("-password");
@@ -20,6 +26,7 @@ router.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
 });
 
 
+// DELETE /users/:id - delete a user by id (admin only)
 router.delete(
   "/users/:id",
   authMiddleware,
