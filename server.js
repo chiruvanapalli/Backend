@@ -9,21 +9,29 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const authRoute = require("./routes/auth");
-const cors = require('cors');
+const cors = require("cors");
 
 // Load .env (database URL, JWT secret, etc.)
 dotenv.config();
 
 const app = express();
 // Allow cross-origin requests from frontend during development
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // your frontend URL
+    credentials: true, // allow cookies
+  })
+);
 // Webhook endpoint requires raw body for signature verification.
 // Register webhook route BEFORE the JSON body parser to preserve raw body.
-app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), require('./routes/webhooks'));
+app.post(
+  "/webhooks/stripe",
+  express.raw({ type: "application/json" }),
+  require("./routes/webhooks")
+);
 
 // Parse JSON bodies for all other incoming requests
 app.use(express.json());
-
 
 // MongoDB connection (single connection for the app)
 mongoose
@@ -40,10 +48,11 @@ app.use("/api", require("./routes/public"));
 app.use("/api/user", require("./routes/user"));
 app.use("/api/admin", require("./routes/admin"));
 // E-commerce related routes
-app.use('/api/cart', require('./routes/cart'));
-app.use('/api/wishlist', require('./routes/wishlist'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/address', require('./routes/address'));
+app.use("/api/cart", require("./routes/cart"));
+app.use("/api/wishlist", require("./routes/wishlist"));
+app.use("/api/orders", require("./routes/orders"));
+app.use("/api/address", require("./routes/address"));
+app.use("/api/restaurants", require("./routes/restataurants"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

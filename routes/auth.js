@@ -60,6 +60,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("credentials", email, password);
 
     // Check if user exists
     const user = await User.findOne({ email });
@@ -125,4 +126,3 @@ router.delete("/me", authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
-
