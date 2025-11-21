@@ -84,21 +84,11 @@ router.post("/create", auth, async (req, res) => {
     await Cart.findOneAndUpdate({ user: req.user.id }, { items: [] });
 
     // Return session URL as well so clients without Stripe.js can redirect
-<<<<<<< HEAD
     res.status(201).json({
       orderId: order._id,
       sessionId: session.id,
       sessionUrl: session.url,
     });
-=======
-    res
-      .status(201)
-      .json({
-        orderId: order._id,
-        sessionId: session.id,
-        sessionUrl: session.url,
-      });
->>>>>>> a5aac1bd5a985df196711f22bf5ce7a20fe594d8
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
