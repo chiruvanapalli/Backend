@@ -8,8 +8,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const authRoute = require("./routes/auth");
 const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
+const authRoute = require("./routes/auth");
+const swaggerSpec = require("./swagger");
 
 // Load .env (database URL, JWT secret, etc.)
 dotenv.config();
@@ -32,6 +34,7 @@ app.post(
 
 // Parse JSON bodies for all other incoming requests
 app.use(express.json());
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // MongoDB connection (single connection for the app)
 mongoose
@@ -44,7 +47,7 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 app.use("/api/auth", authRoute);
-app.use("/api", require("./routes/public"));
+app.use("/api/public", require("./routes/public"));
 app.use("/api/user", require("./routes/user"));
 app.use("/api/admin", require("./routes/admin"));
 // E-commerce related routes

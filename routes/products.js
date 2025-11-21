@@ -4,6 +4,44 @@ const Product = require("../models/Product");
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Product:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: MongoDB ObjectId
+ *         name:
+ *           type: string
+ *         image:
+ *           type: string
+ *           description: URL to product image
+ *         description:
+ *           type: string
+ *         location:
+ *           type: string
+ *         price:
+ *           type: number
+ *         discountPrice:
+ *           type: number
+ *         category:
+ *           type: string
+ *         brand:
+ *           type: string
+ *         stock:
+ *           type: number
+ *         rating:
+ *           type: number
+ *         numOfReviews:
+ *           type: number
+ *       required:
+ *         - name
+ *         - price
+ */
+
 const serializeProduct = (product = {}) => ({
   name: product.name,
   image: product.image,
@@ -16,9 +54,52 @@ const serializeProduct = (product = {}) => ({
   stock: product.stock,
   rating: product.rating,
   numOfReviews: product.numOfReviews,
-  restaurant: product.restaurant,
 });
 
+/**
+ * @swagger
+ * /api/products:
+ *   post:
+ *     summary: Create one or many products
+ *     tags:
+ *       - Products
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             oneOf:
+ *               - $ref: '#/components/schemas/Product'
+ *               - type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Product'
+ *     responses:
+ *       201:
+ *         description: Product(s) created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Invalid payload
+ *       500:
+ *         description: Server error
+ *   get:
+ *     summary: Fetch all products
+ *     tags:
+ *       - Products
+ *     responses:
+ *       200:
+ *         description: List of products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ *       500:
+ *         description: Server error
+ */
 router.post("/products", async (req, res) => {
   try {
     const payload = Array.isArray(req.body) ? req.body : [req.body];
@@ -57,6 +138,33 @@ router.get("/products", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     summary: Fetch a single product by id
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Product found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Invalid id
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/products/:id", async (req, res) => {
   const { id } = req.params;
 
