@@ -183,4 +183,82 @@ router.get("/products/:id", async (req, res) => {
   }
 });
 
+router.get("/products/search", async (req, res) => {
+  try {
+    const { q, limit } = req.query;
+
+    let query = {};
+
+    if (q) {
+      query.$or = [
+        { name: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } },
+        { category: { $regex: q, $options: "i" } },
+        { restaurant: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    const products = await Product.find(query)
+      .limit(limit ? Number(limit) : 20)
+      .sort({ _id: -1 });
+
+    return res.json(products);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/restaurants/top", async (req, res) => {
+  try {
+    const restaurants = await Product.aggregate([
+      {
+        $group: {
+          _id: "$restaurant",
+          avgRating: { $avg: "$rating" },
+          image: { $first: "$image" },
+          location: { $first: "$location" },
+          category: { $first: "$category" },
+        },
+      },
+      { $sort: { avgRating: -1 } },
+      { $limit: 5 },
+
+      // 👇 Rename _id to restaurant
+      {
+        $project: {
+          _id: 0,
+          restaurant: "$_id",
+          avgRating: 1,
+          image: 1,
+          location: 1,
+          category: 1,
+        },
+      },
+    ]);
+
+    return res.json(restaurants);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/restaurants/:restaurantName/products
+router.get("/restaurants/:restaurantName/products", async (req, res) => {
+  try {
+    const restaurantName = req.params.restaurantName;
+
+    const products = await Product.find({
+      restaurant: { $regex: `^${restaurantName}$`, $options: "i" },
+    });
+
+    if (!products.length) {
+      return res.status(404).json({ message: "No products found" });
+    }
+
+    return res.json(products);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
