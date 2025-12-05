@@ -13,7 +13,6 @@ router.get("/dashboard", authMiddleware, adminMiddleware, (req, res) => {
   res.json({ message: "Welcome Admin!" });
 });
 
-
 // GET /users - returns all users (admin only)
 // Note: password fields are removed before returning
 router.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
@@ -24,7 +23,6 @@ router.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 // DELETE /users/:id - delete a user by id (admin only)
 router.delete(
@@ -47,5 +45,3 @@ router.delete(
 );
 
 module.exports = router;
-
-

@@ -7,11 +7,61 @@ const Order = require("../models/Order");
 const Address = require("../models/Address");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
+// Helper to build success/cancel URLs (with optional override paths).
+const baseFrontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const buildFrontendUrl = (path) => {
+  if (!path) return baseFrontendUrl;
+  return `${baseFrontendUrl}${path.startsWith("/") ? path : `/${path}`}`;
+};
+
+async function attachStripeSessionToOrder({
+  order,
+  items,
+  currency,
+  successPath,
+  cancelPath,
+}) {
+  const line_items = items.map((i) => ({
+    price_data: {
+      currency,
+      product_data: { name: i.name || "Item" },
+      unit_amount: Math.round((i.price || 0) * 100),
+    },
+    quantity: i.quantity || 1,
+  }));
+
+  const successUrl = `${buildFrontendUrl(
+    successPath || "/order-success"
+  )}?orderId=${order._id}&session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = `${buildFrontendUrl(cancelPath || "/checkout-cancel")}`;
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items,
+    mode: "payment",
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    metadata: { orderId: order._id.toString() },
+  });
+
+  order.paymentProviderId = session.id;
+  order.paymentMeta = session;
+  await order.save();
+  return session;
+}
+
 // POST /create - create order from cart or from provided items
 router.post("/create", auth, async (req, res) => {
   try {
     // Either provide addressId or shippingAddress in body
-    const { addressId, shippingAddress, items: providedItems } = req.body;
+    const {
+      addressId,
+      shippingAddress,
+      items: providedItems,
+      currency: providedCurrency,
+      successPath,
+      cancelPath,
+    } = req.body;
 
     let items = providedItems;
     if (!items) {
@@ -39,6 +89,10 @@ router.post("/create", auth, async (req, res) => {
       (s, it) => s + (it.price || 0) * (it.quantity || 1),
       0
     );
+    const currency =
+      typeof providedCurrency === "string" && providedCurrency.trim()
+        ? providedCurrency.trim().toLowerCase()
+        : "usd";
 
     // Create order in DB with pending payment status
     const order = await Order.create({
@@ -46,39 +100,19 @@ router.post("/create", auth, async (req, res) => {
       items,
       shippingAddress: ship,
       totalAmount,
+      currency,
       status: "pending",
       paymentStatus: "pending",
       paymentProvider: "stripe",
     });
 
-    // Create Stripe Checkout Session
-    // Convert items to Stripe line_items
-    const line_items = items.map((i) => ({
-      price_data: {
-        currency: "usd",
-        product_data: { name: i.name || "Item" },
-        unit_amount: Math.round((i.price || 0) * 100),
-      },
-      quantity: i.quantity || 1,
-    }));
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items,
-      mode: "payment",
-      success_url: `${
-        process.env.FRONTEND_URL || "http://localhost:3000"
-      }/order-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${
-        process.env.FRONTEND_URL || "http://localhost:3000"
-      }/checkout-cancel`,
-      metadata: { orderId: order._id.toString() },
+    const session = await attachStripeSessionToOrder({
+      order,
+      items,
+      currency,
+      successPath,
+      cancelPath,
     });
-
-    // Save Stripe session id and session metadata on order for later verification in webhook
-    order.paymentProviderId = session.id;
-    order.paymentMeta = session;
-    await order.save();
 
     // Optionally clear cart after creating order
     await Cart.findOneAndUpdate({ user: req.user.id }, { items: [] });

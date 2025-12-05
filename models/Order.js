@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const orderItemSchema = new mongoose.Schema({
   productId: { type: String, required: true },
@@ -9,23 +9,28 @@ const orderItemSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     items: [orderItemSchema],
     shippingAddress: { type: Object }, // snapshot of address
     totalAmount: { type: Number, required: true },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
-      default: 'pending',
+      enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+      default: "pending",
     },
     paymentMethod: { type: String },
     // Payment provider integration fields
     paymentProvider: { type: String }, // e.g. 'stripe'
     paymentProviderId: { type: String }, // provider's payment/session id
-    paymentStatus: { type: String, enum: ['unpaid','pending','paid','failed'], default: 'unpaid' },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "pending", "paid", "failed"],
+      default: "unpaid",
+    },
+    currency: { type: String, default: "usd" },
     paymentMeta: { type: Object }, // raw provider response for audit
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.model("Order", orderSchema);

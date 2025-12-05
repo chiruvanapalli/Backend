@@ -12,6 +12,7 @@ const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const authRoute = require("./routes/auth");
 const swaggerSpec = require("./swagger");
+const restaurantRoute = require("./routes/restaurant");
 
 // Load .env (database URL, JWT secret, etc.)
 dotenv.config();
@@ -57,6 +58,7 @@ app.use("/api/orders", require("./routes/orders"));
 app.use("/api/address", require("./routes/address"));
 app.use("/api", require("./routes/popularproducts"));
 app.use("/api", require("./routes/products"));
+app.use("/api/restaurants", require("./routes/restaurant"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
